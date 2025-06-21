@@ -536,6 +536,13 @@ final class GenerationConfig {
   /// - `image`: Image output.
   final List<String>? responseModalities;
 
+  /// The thinkingBudget parameter guides the model on the number of thinking tokens to use when generating a response.
+  ///
+  /// disable thinking by setting thinkingBudget to 0. Setting the thinkingBudget to -1 turns on dynamic thinking.
+  ///
+  /// Note: only supported in Gemini 2.5 Flash (Range:128~32768), 2.5 Pro(Range:0~24576), and 2.5 Flash-Lite(Range:512~24576).
+  final int? thinkingBudget;
+
   GenerationConfig({
     this.candidateCount,
     this.stopSequences = const [],
@@ -546,6 +553,7 @@ final class GenerationConfig {
     this.responseMimeType,
     this.responseSchema,
     this.responseModalities,
+    this.thinkingBudget,
   });
 
   Map<String, Object?> toJson() => {
@@ -563,6 +571,11 @@ final class GenerationConfig {
           'responseSchema': responseSchema,
         if (responseModalities case final responseModalities?)
           'responseModalities': responseModalities,
+        if (thinkingBudget case final thinkingBudget?)
+          'thinkingConfig': {
+            'thinkingBudget': thinkingBudget,
+            // 'includeThoughts': true
+          },
       };
 }
 
