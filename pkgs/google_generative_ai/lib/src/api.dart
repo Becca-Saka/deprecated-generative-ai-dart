@@ -88,6 +88,14 @@ final class GenerateContentResponse {
         [final candidate, ...] => candidate.text,
       };
 
+  /// The inline data parts of the first candidate in [candidates], if any.
+  ///
+  /// Returns an empty list if there are no candidates, or if the first
+  /// candidate has no [DataPart] parts. There is no error thrown if the
+  /// prompt or response were blocked.
+  Iterable<DataPart> get inlineDatas =>
+      candidates.firstOrNull?.content.parts.whereType<DataPart>() ?? const [];
+
   /// The function call parts of the first candidate in [candidates], if any.
   ///
   /// Returns an empty list if there are no candidates, or if the first
@@ -169,10 +177,14 @@ final class UsageMetadata {
   /// Total token count for the generation request (prompt + candidates).
   final int? totalTokenCount;
 
+  /// number for tokens use thinking.
+  final int? thoughtsTokenCount;
+
   UsageMetadata({
     this.promptTokenCount,
     this.candidatesTokenCount,
     this.totalTokenCount,
+    this.thoughtsTokenCount,
   });
 }
 
@@ -521,6 +533,22 @@ final class GenerationConfig {
   ///   a schema; currently this is limited to `application/json`.
   final Schema? responseSchema;
 
+  /// The modalities that should be included in the response.
+  ///
+  /// Supported values:
+  /// - `text`: Text output.
+  /// - `image`: Image output.
+  final List<String>? responseModalities;
+
+  /// The thinkingBudget parameter guides the model on the number of thinking tokens to use when generating a response.
+  ///
+  /// disable thinking by setting thinkingBudget to 0. Setting the thinkingBudget to -1 turns on dynamic thinking.
+  ///
+  /// Note: only supported in Gemini 2.5 Flash (Range:128~32768), 2.5 Pro(Range:0~24576), and 2.5 Flash-Lite(Range:512~24576).
+  // final int? thinkingBudget;
+  // final bool? includeThoughts;
+  final Map<String, dynamic>? thinkingConfig;
+
   GenerationConfig({
     this.candidateCount,
     this.stopSequences = const [],
@@ -530,6 +558,8 @@ final class GenerationConfig {
     this.topK,
     this.responseMimeType,
     this.responseSchema,
+    this.responseModalities,
+    this.thinkingConfig,
   });
 
   Map<String, Object?> toJson() => {
@@ -545,6 +575,10 @@ final class GenerationConfig {
           'responseMimeType': responseMimeType,
         if (responseSchema case final responseSchema?)
           'responseSchema': responseSchema,
+        if (responseModalities case final responseModalities?)
+          'responseModalities': responseModalities,
+        if (thinkingConfig case final thinkingConfig?)
+          'thinkingConfig': thinkingConfig,
       };
 }
 
@@ -702,10 +736,16 @@ UsageMetadata _parseUsageMetadata(Object jsonObject) {
     {'totalTokenCount': final int totalTokenCount} => totalTokenCount,
     _ => null,
   };
+  final thoughtsTokenCount = switch (jsonObject) {
+    {'thoughtsTokenCount': final int thoughtsTokenCount} => thoughtsTokenCount,
+    _ => null,
+  };
   return UsageMetadata(
-      promptTokenCount: promptTokenCount,
-      candidatesTokenCount: candidatesTokenCount,
-      totalTokenCount: totalTokenCount);
+    promptTokenCount: promptTokenCount,
+    candidatesTokenCount: candidatesTokenCount,
+    totalTokenCount: totalTokenCount,
+    thoughtsTokenCount: thoughtsTokenCount,
+  );
 }
 
 SafetyRating _parseSafetyRating(Object? jsonObject) {
