@@ -31,14 +31,20 @@ final class Tool {
   final List<FunctionDeclaration>? functionDeclarations;
 
   final CodeExecution? codeExecution;
+  final Map<String, Object>? customData;
 
-  Tool({this.functionDeclarations, this.codeExecution});
+  Tool({
+    this.functionDeclarations,
+    this.codeExecution,
+    this.customData,
+  });
 
   Map<String, Object> toJson() => {
         if (functionDeclarations case final functionDeclarations?)
           'functionDeclarations':
               functionDeclarations.map((f) => f.toJson()).toList(),
         if (codeExecution != null) 'codeExecution': <String, Object?>{},
+        if (customData case final customData?) ...customData
       };
 }
 
